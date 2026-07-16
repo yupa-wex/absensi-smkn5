@@ -4,10 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistem Absensi Digital - SMKN 5 Kota Bekasi</title>
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100 font-sans antialiased">
 
+    <!-- Halaman Login -->
     <div id="login-page" class="min-h-screen flex items-center justify-center px-4">
         <div class="max-w-md w-full bg-white rounded-xl shadow-lg p-8 border border-gray-200">
             <div class="text-center mb-8">
@@ -15,7 +16,7 @@
                     E5
                 </div>
                 <h2 class="text-2xl font-bold text-gray-800">SMKN 5 KOTA BEKASI</h2>
-                <p class="text-sm text-gray-500 mt-1">Sistem Absensi Mata Pelajaran RPL</p>
+                <p class="text-sm text-gray-500 mt-1">Sistem Absensi Kehadiran Siswa</p>
             </div>
             
             <div id="login-error" class="hidden mb-4 p-3 bg-red-100 text-red-700 text-sm rounded-lg border border-red-200 text-center">
@@ -38,6 +39,7 @@
         </div>
     </div>
 
+    <!-- Halaman Dashboard -->
     <div id="dashboard-page" class="hidden min-h-screen flex flex-col">
         <header class="bg-blue-700 text-white shadow-md px-6 py-4 flex justify-between items-center">
             <h1 class="text-lg font-bold tracking-wide">E-ABSENSI SMKN 5 KOTA BEKASI</h1>
@@ -47,6 +49,7 @@
         </header>
 
         <main class="flex-1 max-w-4xl w-full mx-auto p-4 md:p-6 space-y-6">
+            <!-- Profil Singkat -->
             <div class="bg-white rounded-xl shadow p-6 border border-gray-200 flex flex-col md:flex-row md:justify-between md:items-center gap-4">
                 <div>
                     <span class="text-xs font-bold uppercase tracking-wider text-blue-600 bg-blue-50 px-2.5 py-1 rounded-md">Profil Siswa</span>
@@ -59,6 +62,7 @@
                 </div>
             </div>
 
+            <!-- Form Absensi -->
             <div class="bg-white rounded-xl shadow border border-gray-200 overflow-hidden">
                 <div class="p-5 bg-gray-50 border-b border-gray-200">
                     <h3 class="font-bold text-gray-800">Isi Kehadiran Hari Ini</h3>
@@ -66,13 +70,25 @@
                 </div>
                 <div class="p-6">
                     <form id="attendance-form" onsubmit="submitAttendance(event)" class="space-y-5">
+                        
+                        <!-- TIPE ABSENSI -->
                         <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-2">Pilih Mata Pelajaran</label>
-                            <select id="subject-select" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none transition bg-white" required>
-                            </select>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Tipe Absensi</label>
+                            <div class="grid grid-cols-2 gap-3">
+                                <label class="border border-gray-200 rounded-lg p-3 flex items-center justify-center gap-2 cursor-pointer hover:bg-blue-50 transition">
+                                    <input type="radio" name="tipe_absen" value="Masuk (06.30)" checked class="text-blue-600 focus:ring-blue-500">
+                                    <span class="text-sm font-medium text-gray-700">Masuk Pagi (06.30)</span>
+                                </label>
+                                <label class="border border-gray-200 rounded-lg p-3 flex items-center justify-center gap-2 cursor-pointer hover:bg-purple-50 transition">
+                                    <input type="radio" name="tipe_absen" value="Pulang (15.00)" class="text-purple-600 focus:ring-purple-500">
+                                    <span class="text-sm font-medium text-gray-700">Pulang Sore (15.00)</span>
+                                </label>
+                            </div>
                         </div>
+                        
+                        <!-- Status Kehadiran -->
                         <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-2">Status Kehadiran</label>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Keterangan</label>
                             <div class="grid grid-cols-3 gap-3">
                                 <label class="border border-gray-200 rounded-lg p-3 flex items-center justify-center gap-2 cursor-pointer hover:bg-green-50 transition">
                                     <input type="radio" name="status" value="Hadir" checked class="text-green-600 focus:ring-green-500">
@@ -95,16 +111,17 @@
                 </div>
             </div>
 
+            <!-- Riwayat -->
             <div class="bg-white rounded-xl shadow border border-gray-200 overflow-hidden">
                 <div class="p-5 bg-gray-50 border-b border-gray-200">
-                    <h3 class="font-bold text-gray-800">Riwayat Absensi Anda (Perangkat Ini)</h3>
+                    <h3 class="font-bold text-gray-800">Riwayat Absensi Anda</h3>
                 </div>
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse">
                         <thead>
                             <tr class="bg-gray-100 text-gray-600 text-xs uppercase tracking-wider font-semibold border-b border-gray-200">
-                                <th class="px-6 py-3">Tanggal / Waktu</th>
-                                <th class="px-6 py-3">Mata Pelajaran</th>
+                                <th class="px-6 py-3">Waktu</th>
+                                <th class="px-6 py-3">Tipe Absen</th>
                                 <th class="px-6 py-3 text-center">Status</th>
                             </tr>
                         </thead>
@@ -117,7 +134,7 @@
     </div>
 
     <script>
-        // !! GANTI KODE DI BAWAH INI DENGAN URL DARI GOOGLE APPS SCRIPT ANDA !!
+        // GANTI DENGAN URL GOOGLE APPS SCRIPT ANDA
         const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyt3VpUEq1Mx894SOPc8ZgaX65AKCFbVTGsgtMu2BWBiLi5xSxYwXU_t06fK3G2IkfD/exec";
 
         const studentsDatabase = [
@@ -134,11 +151,6 @@
             { nis: "242510075", name: "BINTANG ZAHRA FRICILYA", class: "XII RPL 3" },
             { nis: "242510076", name: "DAFA ALGHIFFARI", class: "XII RPL 3" },
         ];
-
-        const subjectsData = {
-            "XI": ["Pemrograman Web", "Basis Data", "Pemrograman Berorientasi Objek (PBO)", "PKK"],
-            "XII": ["Pemrograman Web & Perangkat Bergerak (PWPB)", "Basis Data Lanjut", "Produk Kreatif & Kewirausahaan", "Administrasi Basis Data"]
-        };
 
         let currentSessionUser = null;
 
@@ -178,55 +190,36 @@
             document.getElementById('student-nis').innerText = currentSessionUser.nis;
             document.getElementById('student-class').innerText = currentSessionUser.class;
 
-            const grade = currentSessionUser.class.split(' ')[0]; 
-            const selectEl = document.getElementById('subject-select');
-            selectEl.innerHTML = '<option value="" disabled selected>-- Pilih Mapel --</option>';
-            
-            subjectsData[grade].forEach(subject => {
-                let option = document.createElement('option');
-                option.value = subject;
-                option.innerText = subject;
-                selectEl.appendChild(option);
-            });
-
             renderAttendanceHistory();
         }
 
-        // FUNGSI INI SUDAH TERKONEKSI ONLINE KE GOOGLE SHEETS
         function submitAttendance(event) {
             event.preventDefault();
-            const subject = document.getElementById('subject-select').value;
+            const tipeAbsen = document.querySelector('input[name="tipe_absen"]:checked').value;
             const status = document.querySelector('input[name="status"]:checked').value;
             const submitBtn = document.getElementById('submit-btn');
-            
-            if(!subject) {
-                alert('Silakan pilih mata pelajaran!');
-                return;
-            }
 
             if(WEB_APP_URL === "PASTE_URL_WEB_APP_ANDA_DISINI") {
                 alert("Gagal Kirim: Anda belum memasukkan URL Google Web App di dalam kode!");
                 return;
             }
 
-            // Loading state
             submitBtn.innerText = "Mengirim ke Server Cloud...";
             submitBtn.disabled = true;
             submitBtn.classList.replace('bg-green-600', 'bg-gray-400');
 
             const timestamp = new Date().toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' });
 
-            // Data komplit yang dikirim ke Google Sheets
+            // Data yang dikirim (TANPA mata pelajaran)
             const newRecord = {
                 date: timestamp,
                 nis: currentSessionUser.nis,
                 name: currentSessionUser.name,
                 class: currentSessionUser.class,
-                subject: subject,
+                tipe_absen: tipeAbsen,
                 status: status
             };
 
-            // Menggunakan Fetch API dengan mode no-cors agar data tembus melewati batasan browser
             fetch(WEB_APP_URL, {
                 method: 'POST',
                 mode: 'no-cors',
@@ -236,10 +229,8 @@
                 body: JSON.stringify(newRecord)
             })
             .then(() => {
-                // Berhasil terkirim online
-                alert(`Absensi ${status} untuk mapel ${subject} BERHASIL dikirim secara online!`);
+                alert(`Absensi ${tipeAbsen} BERHASIL dikirim!`);
                 
-                // Simpan juga di device lokal siswa untuk histori display mereka
                 let totalHistory = JSON.parse(localStorage.getItem('attendance_records')) || [];
                 totalHistory.unshift(newRecord);
                 localStorage.setItem('attendance_records', JSON.stringify(totalHistory));
@@ -251,7 +242,6 @@
                 alert("Gagal mengirim absensi. Cek koneksi internet Anda.");
             })
             .finally(() => {
-                // Kembalikan tombol ke semula
                 submitBtn.innerText = "Kirim Absensi Online";
                 submitBtn.disabled = false;
                 submitBtn.classList.replace('bg-gray-400', 'bg-green-600');
@@ -266,7 +256,8 @@
             const studentHistory = totalHistory.filter(record => record.nis === currentSessionUser.nis);
 
             if (studentHistory.length === 0) {
-                tableBody.innerHTML = `<tr><td colspan="3" class="px-6 py-4 text-center text-gray-400 italic">Belum ada riwayat absensi hari ini.</td></tr>`;
+                // Colspan diubah dari 4 menjadi 3 karena kolom mapel dihapus
+                tableBody.innerHTML = `<tr><td colspan="3" class="px-6 py-4 text-center text-gray-400 italic">Belum ada riwayat absensi.</td></tr>`;
                 return;
             }
 
@@ -275,10 +266,11 @@
                 if (record.status === 'Izin') badgeColor = 'bg-yellow-100 text-yellow-800';
                 if (record.status === 'Sakit') badgeColor = 'bg-red-100 text-red-800';
 
+                // Baris tabel tanpa mata pelajaran
                 let row = `
                     <tr class="hover:bg-gray-50 transition">
-                        <td class="px-6 py-4 font-medium text-gray-500">${record.date}</td>
-                        <td class="px-6 py-4 font-semibold text-gray-800">${record.subject}</td>
+                        <td class="px-6 py-4 font-medium text-gray-500 whitespace-nowrap">${record.date}</td>
+                        <td class="px-6 py-4 font-bold text-blue-700">${record.tipe_absen || '-'}</td>
                         <td class="px-6 py-4 text-center">
                             <span class="px-2.5 py-1 rounded-full text-xs font-semibold ${badgeColor}">${record.status}</span>
                         </td>
