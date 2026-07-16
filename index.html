@@ -1,292 +1,47 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistem Absensi Digital - SMKN 5 Kota Bekasi</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-gray-100 font-sans antialiased">
+function doGet(e) {
+  return ContentService.createTextOutput("Sistem Server Absensi Aktif.");
+}
 
-    <!-- Halaman Login -->
-    <div id="login-page" class="min-h-screen flex items-center justify-center px-4">
-        <div class="max-w-md w-full bg-white rounded-xl shadow-lg p-8 border border-gray-200">
-            <div class="text-center mb-8">
-                <div class="mx-auto w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center text-white text-2xl font-bold mb-3 shadow-md">
-                    RPL
-                </div>
-                <h2 class="text-2xl font-bold text-gray-800">SMKN 5 KOTA BEKASI</h2>
-                <p class="text-sm text-gray-500 mt-1">Sistem Absensi Kehadiran Siswa</p>
-            </div>
-            
-            <div id="login-error" class="hidden mb-4 p-3 bg-red-100 text-red-700 text-sm rounded-lg border border-red-200 text-center">
-                NIS tidak terdaftar atau password salah!
-            </div>
+function doPost(e) {
+  try {
+    var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+    var data = JSON.parse(e.postData.contents);
+    var fileUrl = "-"; // Default jika tidak ada file
 
-            <form id="login-form" onsubmit="handleLogin(event)">
-                <div class="mb-4">
-                    <label class="block text-sm font-semibold text-gray-700 mb-2">Username (NIS)</label>
-                    <input type="text" id="username" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none transition" placeholder="Masukkan NIS Anda" required>
-                </div>
-                <div class="mb-6">
-                    <label class="block text-sm font-semibold text-gray-700 mb-2">Password (NIS)</label>
-                    <input type="password" id="password" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none transition" placeholder="Masukkan Password (NIS)" required>
-                </div>
-                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 rounded-lg transition shadow-md">
-                    Masuk ke Sistem
-                </button>
-            </form>
-        </div>
-    </div>
-
-    <!-- Halaman Dashboard -->
-    <div id="dashboard-page" class="hidden min-h-screen flex flex-col">
-        <header class="bg-blue-700 text-white shadow-md px-6 py-4 flex justify-between items-center">
-            <h1 class="text-lg font-bold tracking-wide">E-ABSENSI SMKN 5 KOTA BEKASI</h1>
-            <button onclick="handleLogout()" class="bg-red-500 hover:bg-red-600 text-white text-sm font-medium px-4 py-2 rounded-lg transition shadow">
-                Keluar
-            </button>
-        </header>
-
-        <main class="flex-1 max-w-4xl w-full mx-auto p-4 md:p-6 space-y-6">
-            <!-- Profil Singkat -->
-            <div class="bg-white rounded-xl shadow p-6 border border-gray-200 flex flex-col md:flex-row md:justify-between md:items-center gap-4">
-                <div>
-                    <span class="text-xs font-bold uppercase tracking-wider text-blue-600 bg-blue-50 px-2.5 py-1 rounded-md">Profil Siswa</span>
-                    <h2 id="student-name" class="text-xl font-bold text-gray-800 mt-2">-</h2>
-                    <p class="text-gray-500 text-sm mt-0.5">NIS: <span id="student-nis">-</span></p>
-                </div>
-                <div class="bg-gray-50 px-6 py-3 rounded-xl border border-gray-100 text-center md:text-right">
-                    <p class="text-xs text-gray-400 font-medium uppercase">Kelas / Rombel</p>
-                    <p id="student-class" class="text-lg font-bold text-gray-700">-</p>
-                </div>
-            </div>
-
-            <!-- Form Absensi -->
-            <div class="bg-white rounded-xl shadow border border-gray-200 overflow-hidden">
-                <div class="p-5 bg-gray-50 border-b border-gray-200">
-                    <h3 class="font-bold text-gray-800">Isi Kehadiran Hari Ini</h3>
-                    <p class="text-xs text-gray-500 mt-0.5" id="current-date">-</p>
-                </div>
-                <div class="p-6">
-                    <form id="attendance-form" onsubmit="submitAttendance(event)" class="space-y-5">
-                        
-                        <!-- TIPE ABSENSI -->
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-2">Tipe Absensi</label>
-                            <div class="grid grid-cols-2 gap-3">
-                                <label class="border border-gray-200 rounded-lg p-3 flex items-center justify-center gap-2 cursor-pointer hover:bg-blue-50 transition">
-                                    <input type="radio" name="tipe_absen" value="Masuk (06.30)" checked class="text-blue-600 focus:ring-blue-500">
-                                    <span class="text-sm font-medium text-gray-700">Masuk Pagi (06.30)</span>
-                                </label>
-                                <label class="border border-gray-200 rounded-lg p-3 flex items-center justify-center gap-2 cursor-pointer hover:bg-purple-50 transition">
-                                    <input type="radio" name="tipe_absen" value="Pulang (15.00)" class="text-purple-600 focus:ring-purple-500">
-                                    <span class="text-sm font-medium text-gray-700">Pulang Sore (15.00)</span>
-                                </label>
-                            </div>
-                        </div>
-                        
-                        <!-- Status Kehadiran -->
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-2">Keterangan</label>
-                            <div class="grid grid-cols-3 gap-3">
-                                <label class="border border-gray-200 rounded-lg p-3 flex items-center justify-center gap-2 cursor-pointer hover:bg-green-50 transition">
-                                    <input type="radio" name="status" value="Hadir" checked class="text-green-600 focus:ring-green-500">
-                                    <span class="text-sm font-medium text-gray-700">Hadir</span>
-                                </label>
-                                <label class="border border-gray-200 rounded-lg p-3 flex items-center justify-center gap-2 cursor-pointer hover:bg-yellow-50 transition">
-                                    <input type="radio" name="status" value="Izin" class="text-yellow-600 focus:ring-yellow-500">
-                                    <span class="text-sm font-medium text-gray-700">Izin</span>
-                                </label>
-                                <label class="border border-gray-200 rounded-lg p-3 flex items-center justify-center gap-2 cursor-pointer hover:bg-red-50 transition">
-                                    <input type="radio" name="status" value="Sakit" class="text-red-600 focus:ring-red-500">
-                                    <span class="text-sm font-medium text-gray-700">Sakit</span>
-                                </label>
-                            </div>
-                        </div>
-                        <button type="submit" id="submit-btn" class="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-2.5 rounded-lg transition shadow-md">
-                            Kirim Absensi Online
-                        </button>
-                    </form>
-                </div>
-            </div>
-
-            <!-- Riwayat -->
-            <div class="bg-white rounded-xl shadow border border-gray-200 overflow-hidden">
-                <div class="p-5 bg-gray-50 border-b border-gray-200">
-                    <h3 class="font-bold text-gray-800">Riwayat Absensi Anda</h3>
-                </div>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse">
-                        <thead>
-                            <tr class="bg-gray-100 text-gray-600 text-xs uppercase tracking-wider font-semibold border-b border-gray-200">
-                                <th class="px-6 py-3">Waktu</th>
-                                <th class="px-6 py-3">Tipe Absen</th>
-                                <th class="px-6 py-3 text-center">Status</th>
-                            </tr>
-                        </thead>
-                        <tbody id="attendance-history-table" class="text-sm text-gray-700 divide-y divide-gray-100">
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </main>
-    </div>
-
-    <script>
-        // GANTI DENGAN URL GOOGLE APPS SCRIPT ANDA
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyt3VpUEq1Mx894SOPc8ZgaX65AKCFbVTGsgtMu2BWBiLi5xSxYwXU_t06fK3G2IkfD/exec";
-
-        const studentsDatabase = [
-            { nis: "24251000", name: "YUYUS PURNAMA", class: "XII RPL 1" },
-            { nis: "242510001", name: "AHMAD RIFKY DEWANTO", class: "XII RPL 1" },
-            { nis: "242510002", name: "AIRA ALVISA DHEA", class: "XII RPL 1" },
-            { nis: "242510003", name: "ALYA AZZAHRA", class: "XII RPL 1" },
-            { nis: "242510004", name: "AMELIA SITANGGANG", class: "XII RPL 1" },
-            { nis: "242510005", name: "ANUROFIK AHMAD QUSOYI", class: "XII RPL 1" },
-            { nis: "242510037", name: "AKBAR ABDUL AZIZ", class: "XII RPL 2" },
-            { nis: "242510038", name: "ALIILAH DIPA SIRLY", class: "XII RPL 2" },
-            { nis: "242510039", name: "ALLYA SYAFFA PUTRI ADITYA", class: "XII RPL 2" },
-            { nis: "242510073", name: "ARTIKA AULIA", class: "XII RPL 2" },
-            { nis: "242510074", name: "BAGUS TRI WIJAKSANA", class: "XII RPL 3" },
-            { nis: "242510075", name: "BINTANG ZAHRA FRICILYA", class: "XII RPL 3" },
-            { nis: "242510076", name: "DAFA ALGHIFFARI", class: "XII RPL 3" },
-        ];
-
-        let currentSessionUser = null;
-
-        window.onload = function() {
-            const savedUser = localStorage.getItem('logged_in_student');
-            if (savedUser) {
-                currentSessionUser = JSON.parse(savedUser);
-                showDashboard();
-            }
-            document.getElementById('current-date').innerText = new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-        };
-
-        function handleLogin(event) {
-            event.preventDefault();
-            const usernameInput = document.getElementById('username').value.trim();
-            const passwordInput = document.getElementById('password').value.trim();
-            const errorDiv = document.getElementById('login-error');
-
-            const student = studentsDatabase.find(s => s.nis === usernameInput && s.nis === passwordInput);
-
-            if (student) {
-                errorDiv.classList.add('hidden');
-                currentSessionUser = student;
-                localStorage.setItem('logged_in_student', JSON.stringify(student));
-                showDashboard();
-                document.getElementById('login-form').reset();
-            } else {
-                errorDiv.classList.remove('hidden');
-            }
-        }
-
-        function showDashboard() {
-            document.getElementById('login-page').classList.add('hidden');
-            document.getElementById('dashboard-page').classList.remove('hidden');
-
-            document.getElementById('student-name').innerText = currentSessionUser.name;
-            document.getElementById('student-nis').innerText = currentSessionUser.nis;
-            document.getElementById('student-class').innerText = currentSessionUser.class;
-
-            renderAttendanceHistory();
-        }
-
-        function submitAttendance(event) {
-            event.preventDefault();
-            const tipeAbsen = document.querySelector('input[name="tipe_absen"]:checked').value;
-            const status = document.querySelector('input[name="status"]:checked').value;
-            const submitBtn = document.getElementById('submit-btn');
-
-            if(WEB_APP_URL === "PASTE_URL_WEB_APP_ANDA_DISINI") {
-                alert("Gagal Kirim: Anda belum memasukkan URL Google Web App di dalam kode!");
-                return;
-            }
-
-            submitBtn.innerText = "Mengirim ke Server Cloud...";
-            submitBtn.disabled = true;
-            submitBtn.classList.replace('bg-green-600', 'bg-gray-400');
-
-            const timestamp = new Date().toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' });
-
-            // Data yang dikirim (TANPA mata pelajaran)
-            const newRecord = {
-                date: timestamp,
-                nis: currentSessionUser.nis,
-                name: currentSessionUser.name,
-                class: currentSessionUser.class,
-                tipe_absen: tipeAbsen,
-                status: status
-            };
-
-            fetch(WEB_APP_URL, {
-                method: 'POST',
-                mode: 'no-cors',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(newRecord)
-            })
-            .then(() => {
-                alert(`Absensi ${tipeAbsen} BERHASIL dikirim!`);
-                
-                let totalHistory = JSON.parse(localStorage.getItem('attendance_records')) || [];
-                totalHistory.unshift(newRecord);
-                localStorage.setItem('attendance_records', JSON.stringify(totalHistory));
-                
-                renderAttendanceHistory();
-            })
-            .catch((error) => {
-                console.error('Error:', error);
-                alert("Gagal mengirim absensi. Cek koneksi internet Anda.");
-            })
-            .finally(() => {
-                submitBtn.innerText = "Kirim Absensi Online";
-                submitBtn.disabled = false;
-                submitBtn.classList.replace('bg-gray-400', 'bg-green-600');
-            });
-        }
-
-        function renderAttendanceHistory() {
-            const tableBody = document.getElementById('attendance-history-table');
-            tableBody.innerHTML = '';
-
-            const totalHistory = JSON.parse(localStorage.getItem('attendance_records')) || [];
-            const studentHistory = totalHistory.filter(record => record.nis === currentSessionUser.nis);
-
-            if (studentHistory.length === 0) {
-                // Colspan diubah dari 4 menjadi 3 karena kolom mapel dihapus
-                tableBody.innerHTML = `<tr><td colspan="3" class="px-6 py-4 text-center text-gray-400 italic">Belum ada riwayat absensi.</td></tr>`;
-                return;
-            }
-
-            studentHistory.forEach(record => {
-                let badgeColor = 'bg-green-100 text-green-800';
-                if (record.status === 'Izin') badgeColor = 'bg-yellow-100 text-yellow-800';
-                if (record.status === 'Sakit') badgeColor = 'bg-red-100 text-red-800';
-
-                // Baris tabel tanpa mata pelajaran
-                let row = `
-                    <tr class="hover:bg-gray-50 transition">
-                        <td class="px-6 py-4 font-medium text-gray-500 whitespace-nowrap">${record.date}</td>
-                        <td class="px-6 py-4 font-bold text-blue-700">${record.tipe_absen || '-'}</td>
-                        <td class="px-6 py-4 text-center">
-                            <span class="px-2.5 py-1 rounded-full text-xs font-semibold ${badgeColor}">${record.status}</span>
-                        </td>
-                    </tr>
-                `;
-                tableBody.innerHTML += row;
-            });
-        }
-
-        function handleLogout() {
-            localStorage.removeItem('logged_in_student');
-            currentSessionUser = null;
-            document.getElementById('dashboard-page').classList.add('hidden');
-            document.getElementById('login-page').classList.remove('hidden');
-        }
-    </script>
-</body>
-</html>
+    // Logika pembuatan file di Google Drive jika ada dokumen yang diunggah
+    if (data.fileData && data.fileName) {
+      var decodedData = Utilities.base64Decode(data.fileData);
+      var blob = Utilities.newBlob(decodedData, data.mimeType, data.fileName);
+      
+      // Mencari atau membuat folder khusus bernama "Bukti Absensi" di Drive Anda
+      var folders = DriveApp.getFoldersByName("Bukti Absensi");
+      var folder = folders.hasNext() ? folders.next() : DriveApp.createFolder("Bukti Absensi");
+      
+      var file = folder.createFile(blob);
+      // Membuat agar link file bisa dilihat oleh guru/admin
+      file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+      fileUrl = file.getUrl();
+    }
+    
+    var rowData = [
+      data.date,         
+      data.nis,          
+      data.name,         
+      data.class,        
+      data.tipe_absen,   
+      data.status,
+      data.terlambat,    // Kolom Terlambat
+      data.keterangan,   // Kolom Keterangan Izin/Sakit
+      fileUrl            // Kolom Link File Bukti
+    ];
+    
+    sheet.appendRow(rowData);
+    
+    return ContentService.createTextOutput(JSON.stringify({ "status": "success" }))
+                         .setMimeType(ContentService.MimeType.JSON);
+                         
+  } catch(error) {
+    return ContentService.createTextOutput(JSON.stringify({ "status": "error", "message": error.toString() }))
+                         .setMimeType(ContentService.MimeType.JSON);
+  }
+}
