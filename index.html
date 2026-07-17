@@ -12,9 +12,9 @@
     <div id="login-page" class="min-h-screen flex items-center justify-center px-4">
         <div class="max-w-md w-full bg-white rounded-xl shadow-lg p-8 border border-gray-200">
             <div class="text-center mb-8">
-                <div class="mx-auto w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center text-white text-2xl font-bold mb-3 shadow-md">RPL</div>
+                <div class="mx-auto w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center text-white text-2xl font-bold mb-3 shadow-md">E5</div>
                 <h2 class="text-2xl font-bold text-gray-800">SMKN 5 KOTA BEKASI</h2>
-                <p class="text-sm text-gray-500 mt-1">Sistem Absensi Terpadu</p>
+                <p class="text-sm text-gray-500 mt-1">Sistem Absensi Terpadu Berbasis GPS</p>
             </div>
             
             <div id="login-error" class="hidden mb-4 p-3 bg-red-100 text-red-700 text-sm rounded-lg border border-red-200 text-center">
@@ -23,11 +23,11 @@
 
             <form id="login-form" onsubmit="handleLogin(event)">
                 <div class="mb-4">
-                    <label class="block text-sm font-semibold text-gray-700 mb-2">Username</label>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Username (NIS)</label>
                     <input type="text" id="username" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none transition" required>
                 </div>
                 <div class="mb-6">
-                    <label class="block text-sm font-semibold text-gray-700 mb-2">Password</label>
+                    <label class="block text-sm font-semibold text-gray-700 mb-2">Password (NIS)</label>
                     <input type="password" id="password" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none transition" required>
                 </div>
                 <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 rounded-lg transition shadow-md">Masuk ke Sistem</button>
@@ -50,11 +50,21 @@
                 <p class="text-sm">Anda tercatat tidak melakukan Absen Pulang pada hari sebelumnya.</p>
             </div>
 
-            <!-- Profil Singkat -->
-            <div class="bg-white rounded-xl shadow p-6 border border-gray-200 flex justify-between items-center">
+            <!-- Profil & Status GPS -->
+            <div class="bg-white rounded-xl shadow p-6 border border-gray-200 flex flex-col md:flex-row md:justify-between md:items-center gap-4">
                 <div>
                     <h2 id="student-name" class="text-xl font-bold text-gray-800">-</h2>
                     <p class="text-gray-500 text-sm mt-1">NIS: <span id="student-nis">-</span> | <span id="student-class" class="font-semibold">-</span></p>
+                </div>
+                
+                <!-- Indikator GPS -->
+                <div class="bg-gray-50 px-4 py-3 rounded-lg border border-gray-200 text-sm flex items-center gap-3">
+                    <div id="gps-spinner" class="animate-spin h-5 w-5 border-2 border-blue-600 border-t-transparent rounded-full"></div>
+                    <div id="gps-icon" class="hidden h-3 w-3 rounded-full bg-green-500"></div>
+                    <div>
+                        <p class="font-bold text-gray-700">Status Lokasi</p>
+                        <p id="gps-status" class="text-gray-500 text-xs">Mencari sinyal GPS...</p>
+                    </div>
                 </div>
             </div>
 
@@ -102,20 +112,20 @@
                             </div>
                         </div>
 
-                        <!-- Keterangan & Upload File (Tersembunyi jika Hadir) -->
+                        <!-- Keterangan & Upload File -->
                         <div id="attachment-section" class="hidden space-y-4 bg-gray-50 p-4 rounded-lg border border-gray-200">
                             <div>
                                 <label class="block text-sm font-semibold text-gray-700 mb-2">Alasan Izin/Sakit</label>
                                 <textarea id="keterangan-text" rows="2" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Tuliskan alasan lengkap..."></textarea>
                             </div>
                             <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-2">Upload Bukti (Surat Dokter/Foto)</label>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2">Upload Bukti</label>
                                 <input type="file" id="file-upload" accept="image/*,.pdf" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
                             </div>
                         </div>
 
-                        <button type="submit" id="submit-btn" class="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-3 rounded-lg transition shadow-md">
-                            Kirim Absensi
+                        <button type="submit" id="submit-btn" disabled class="w-full bg-gray-400 text-white font-medium py-3 rounded-lg transition shadow-md">
+                            Mencari Lokasi Anda...
                         </button>
                     </form>
                 </div>
@@ -133,7 +143,7 @@
                                 <th class="px-4 py-3">Tanggal</th>
                                 <th class="px-4 py-3">Tipe</th>
                                 <th class="px-4 py-3">Status</th>
-                                <th class="px-4 py-3">Info</th>
+                                <th class="px-4 py-3">Info / Jarak</th>
                             </tr>
                         </thead>
                         <tbody id="attendance-history-table" class="text-gray-700 divide-y divide-gray-100">
@@ -145,8 +155,12 @@
     </div>
 
     <script>
-        // GANTI URL INI DENGAN URL WEB APP YANG BARU DIDEPLOY!
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxiiTeNP7C7SGWfw9i9h2CY2H61CR22XNeuAmvQO2d_205FANMhY1gDUXkE1QnNUhAZyA/exec";
+        const WEB_APP_URL = "PASTE_URL_WEB_APP_ANDA_DISINI";
+
+        // KORDINAT SMKN 5 KOTA BEKASI (Ganti dengan kordinat akurat dari Google Maps)
+        const SCHOOL_LAT = -6.203068; 
+        const SCHOOL_LON = 107.019460; 
+        const MAX_DISTANCE = 300; // Maksimal radius 300 meter
 
         const studentsDatabase = [
             { nis: "242510001", name: "AHMAD RIFKY DEWANTO", class: "XII RPL 1" },
@@ -266,6 +280,8 @@
         let fileBase64 = null;
         let fileMimeType = null;
         let fileName = null;
+        
+        let userDistance = null; // Menyimpan jarak pengguna saat ini
 
         window.onload = function() {
             setInterval(updateClock, 1000);
@@ -305,9 +321,94 @@
 
             checkAttendanceRules();
             renderAttendanceHistory();
+            getLocation(); // Panggil fungsi GPS saat dashboard terbuka
         }
 
-        // FUNGSI LOGIKA VALIDASI WAKTU
+        // ==========================================
+        // FUNGSI GEOLOCATION & MENGHITUNG JARAK
+        // ==========================================
+        function getLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(showPosition, showError, {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 0
+                });
+            } else {
+                setGpsError("Browser tidak mendukung GPS.");
+            }
+        }
+
+        function showPosition(position) {
+            const userLat = position.coords.latitude;
+            const userLon = position.coords.longitude;
+            
+            userDistance = calculateDistance(SCHOOL_LAT, SCHOOL_LON, userLat, userLon);
+            userDistance = Math.round(userDistance); // Bulatkan ke meter terdekat
+
+            const statusText = document.getElementById('gps-status');
+            const icon = document.getElementById('gps-icon');
+            const spinner = document.getElementById('gps-spinner');
+            
+            spinner.classList.add('hidden');
+            icon.classList.remove('hidden');
+
+            // Cek apakah di dalam radius 300 meter
+            if (userDistance <= MAX_DISTANCE) {
+                icon.classList.replace('bg-red-500', 'bg-green-500');
+                statusText.innerHTML = `Sesuai Area (Jarak: <b>${userDistance}m</b>)`;
+                statusText.classList.replace('text-gray-500', 'text-green-600');
+                validateForm(); // Aktifkan tombol jika lolos validasi lain
+            } else {
+                icon.classList.replace('bg-green-500', 'bg-red-500');
+                statusText.innerHTML = `Di Luar Area (Jarak: <b>${userDistance}m</b>)`;
+                statusText.classList.replace('text-gray-500', 'text-red-600');
+                lockSubmitButton("Jarak Anda terlalu jauh dari sekolah.");
+            }
+        }
+
+        function showError(error) {
+            let msg = "";
+            switch(error.code) {
+                case error.PERMISSION_DENIED: msg = "Akses lokasi ditolak."; break;
+                case error.POSITION_UNAVAILABLE: msg = "Informasi lokasi tidak tersedia."; break;
+                case error.TIMEOUT: msg = "Waktu permintaan lokasi habis."; break;
+                default: msg = "Terjadi kesalahan GPS tak dikenal."; break;
+            }
+            setGpsError(msg);
+        }
+
+        function setGpsError(msg) {
+            document.getElementById('gps-spinner').classList.add('hidden');
+            let icon = document.getElementById('gps-icon');
+            icon.classList.remove('hidden');
+            icon.classList.replace('bg-green-500', 'bg-red-500');
+            
+            let statusText = document.getElementById('gps-status');
+            statusText.innerText = msg;
+            statusText.classList.replace('text-gray-500', 'text-red-600');
+            
+            lockSubmitButton("Izin lokasi diperlukan.");
+        }
+
+        // Rumus Haversine untuk hitung jarak (Meter)
+        function calculateDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371e3; // Radius bumi dalam meter
+            const p1 = lat1 * Math.PI/180;
+            const p2 = lat2 * Math.PI/180;
+            const dp = (lat2-lat1) * Math.PI/180;
+            const dl = (lon2-lon1) * Math.PI/180;
+
+            const a = Math.sin(dp/2) * Math.sin(dp/2) +
+                      Math.cos(p1) * Math.cos(p2) *
+                      Math.sin(dl/2) * Math.sin(dl/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            return R * c; 
+        }
+
+        // ==========================================
+        // VALIDASI ABSENSI & WAKTU
+        // ==========================================
         function checkAttendanceRules() {
             const history = JSON.parse(localStorage.getItem('attendance_records')) || [];
             const myHistory = history.filter(r => r.nis === currentSessionUser.nis);
@@ -315,7 +416,6 @@
             const now = new Date();
             const todayStr = now.toLocaleDateString('id-ID');
             
-            // Cek lupa absen pulang kemarin
             const yesterday = new Date(now);
             yesterday.setDate(yesterday.getDate() - 1);
             const yestStr = yesterday.toLocaleDateString('id-ID');
@@ -329,11 +429,22 @@
                 document.getElementById('warning-pulang').classList.add('hidden');
             }
 
-            // Validasi Form Hari ini
             validateForm(myHistory, todayStr, now);
         }
 
+        function lockSubmitButton(pesan) {
+            const btnSubmit = document.getElementById('submit-btn');
+            btnSubmit.disabled = true;
+            btnSubmit.classList.replace('bg-green-600', 'bg-gray-400');
+            btnSubmit.innerText = pesan;
+        }
+
         function validateForm(myHistoryParam, todayStrParam, nowParam) {
+            // Jika GPS masih loading atau jarak lebih dari MAX, form jangan diunlock
+            if (userDistance === null || userDistance > MAX_DISTANCE) {
+                return; 
+            }
+
             const history = myHistoryParam || JSON.parse(localStorage.getItem('attendance_records')) || [];
             const myHistory = myHistoryParam ? history : history.filter(r => r.nis === currentSessionUser.nis);
             
@@ -353,15 +464,14 @@
             msg.innerText = "";
             btnSubmit.disabled = false;
             btnSubmit.classList.replace('bg-gray-400', 'bg-green-600');
+            btnSubmit.innerText = "Kirim Absensi";
 
-            // Logic Absen Masuk (Hanya bisa 1x)
             if (hasMasukToday) {
                 radioMasuk.disabled = true;
                 document.getElementById('label-masuk').classList.add('opacity-50', 'bg-gray-100');
-                if(radioMasuk.checked) radioPulang.checked = true; // Auto pindah ke pulang
+                if(radioMasuk.checked) radioPulang.checked = true; 
             }
 
-            // Logic Absen Pulang (Harus > Jam 15.00 dan hanya 1x)
             if (hasPulangToday) {
                 radioPulang.disabled = true;
                 document.getElementById('label-pulang').classList.add('opacity-50', 'bg-gray-100');
@@ -373,31 +483,26 @@
                 document.getElementById('label-pulang').classList.remove('opacity-50', 'bg-gray-100');
             }
 
-            // Pesan Peringatan & Kunci Tombol
             if (radioMasuk.checked && hasMasukToday) {
-                btnSubmit.disabled = true;
-                btnSubmit.classList.replace('bg-green-600', 'bg-gray-400');
+                lockSubmitButton("Sudah absen masuk hari ini.");
                 msg.innerText = "Anda sudah melakukan absen masuk hari ini.";
                 msg.classList.remove('hidden');
             }
 
             if (radioPulang.checked) {
                 if (currentHour < 15) {
-                    btnSubmit.disabled = true;
-                    btnSubmit.classList.replace('bg-green-600', 'bg-gray-400');
+                    lockSubmitButton("Absen pulang jam 15.00");
                     msg.innerText = "Absen pulang baru bisa dilakukan setelah jam 15.00.";
                     msg.classList.remove('hidden');
                 }
                 if (hasPulangToday) {
-                    btnSubmit.disabled = true;
-                    btnSubmit.classList.replace('bg-green-600', 'bg-gray-400');
+                    lockSubmitButton("Sudah absen pulang.");
                     msg.innerText = "Anda sudah melakukan absen pulang hari ini.";
                     msg.classList.remove('hidden');
                 }
             }
         }
 
-        // Tampilkan Upload Form jika Sakit/Izin
         function toggleAttachment() {
             const status = document.querySelector('input[name="status"]:checked').value;
             const attachSection = document.getElementById('attachment-section');
@@ -408,11 +513,9 @@
             }
         }
 
-        // Proses membaca file gambar/PDF
         document.getElementById('file-upload').addEventListener('change', function(e) {
             let file = e.target.files[0];
             if(file) {
-                // Batasi file maks 3MB agar tidak memberatkan script
                 if(file.size > 3 * 1024 * 1024) {
                     alert("Ukuran file terlalu besar! Maksimal 3MB.");
                     this.value = "";
@@ -421,9 +524,7 @@
                 fileName = file.name;
                 fileMimeType = file.type;
                 let reader = new FileReader();
-                reader.onload = function(event) {
-                    fileBase64 = event.target.result.split("base64,")[1];
-                }
+                reader.onload = function(event) { fileBase64 = event.target.result.split("base64,")[1]; }
                 reader.readAsDataURL(file);
             }
         });
@@ -431,39 +532,34 @@
         function calculateLateMinutes() {
             const now = new Date();
             const target = new Date();
-            target.setHours(6, 30, 0, 0); // Target jam masuk 06.30
-
-            if (now > target) {
-                const diffMs = now - target;
-                return Math.floor(diffMs / 60000); // Konversi millisecond ke menit
-            }
+            target.setHours(6, 30, 0, 0); 
+            if (now > target) { return Math.floor((now - target) / 60000); }
             return 0;
         }
 
         function submitAttendance(event) {
             event.preventDefault();
             
+            if(userDistance > MAX_DISTANCE) {
+                alert("Anda berada di luar jangkauan sekolah!"); return;
+            }
+
             const tipeAbsen = document.querySelector('input[name="tipe_absen"]:checked').value;
             const status = document.querySelector('input[name="status"]:checked').value;
             const keterangan = document.getElementById('keterangan-text').value;
             const submitBtn = document.getElementById('submit-btn');
 
             if(WEB_APP_URL === "PASTE_URL_WEB_APP_ANDA_DISINI") {
-                alert("Masukkan URL Google Web App di dalam kode terlebih dahulu!"); return;
+                alert("Masukkan URL Google Web App di dalam kode!"); return;
             }
 
-            // Kalkulasi keterlambatan (Hanya untuk Tipe Masuk)
             let terlambatInfo = "-";
             if (tipeAbsen === "Masuk") {
                 let lateMins = calculateLateMinutes();
-                if (lateMins > 0) {
-                    terlambatInfo = `Terlambat ${lateMins} menit`;
-                } else {
-                    terlambatInfo = "Tepat Waktu";
-                }
+                terlambatInfo = lateMins > 0 ? `Terlambat ${lateMins} menit` : "Tepat Waktu";
             }
 
-            submitBtn.innerText = "Mengirim Data & File...";
+            submitBtn.innerText = "Mengirim Data & Lokasi...";
             submitBtn.disabled = true;
             submitBtn.classList.replace('bg-green-600', 'bg-gray-400');
 
@@ -473,7 +569,7 @@
 
             const newRecord = {
                 date: timestampFull,
-                dateStr: dateOnlyStr, // Untuk validasi filtering internal lokal
+                dateStr: dateOnlyStr, 
                 nis: currentSessionUser.nis,
                 name: currentSessionUser.name,
                 class: currentSessionUser.class,
@@ -481,8 +577,7 @@
                 status: status,
                 terlambat: terlambatInfo,
                 keterangan: (status === 'Hadir') ? "-" : keterangan,
-                
-                // Data file jika ada
+                jarak: userDistance + " Meter", // Kirim data jarak ke server
                 fileName: fileName,
                 mimeType: fileMimeType,
                 fileData: fileBase64
@@ -495,35 +590,28 @@
                 body: JSON.stringify(newRecord)
             })
             .then(() => {
-                let alertMsg = `Absensi ${tipeAbsen} BERHASIL dikirim!\n`;
-                if(tipeAbsen === "Masuk" && terlambatInfo.includes("Terlambat")) {
-                    alertMsg += `Peringatan: Anda ${terlambatInfo}.`;
-                }
-                alert(alertMsg);
+                alert(`Absensi ${tipeAbsen} BERHASIL dikirim!\nJarak Anda: ${userDistance}m dari pusat sekolah.`);
                 
-                // Simpan ke local storage agar terbaca sistem gembok
                 let totalHistory = JSON.parse(localStorage.getItem('attendance_records')) || [];
-                // Data khusus untuk riwayat tampilan tabel
                 totalHistory.unshift({
                     date: timestampFull,
                     dateStr: dateOnlyStr,
                     nis: currentSessionUser.nis,
                     tipe: tipeAbsen,
                     status: status,
-                    infoTambahan: (tipeAbsen==="Masuk" ? terlambatInfo : keterangan)
+                    infoTambahan: `${tipeAbsen==="Masuk" ? terlambatInfo : keterangan} (${userDistance}m)`
                 });
                 localStorage.setItem('attendance_records', JSON.stringify(totalHistory));
                 
-                // Reset form file
                 fileBase64 = null;
                 fileName = null;
                 document.getElementById('file-upload').value = "";
                 document.getElementById('keterangan-text').value = "";
                 
-                checkAttendanceRules(); // Refresh aturan (kunci tombol)
-                renderAttendanceHistory(); // Update tabel
+                checkAttendanceRules(); 
+                renderAttendanceHistory(); 
             })
-            .catch(() => alert("Gagal mengirim absensi. Cek koneksi internet Anda."))
+            .catch(() => alert("Gagal mengirim absensi. Cek koneksi internet."))
             .finally(() => {
                 submitBtn.innerText = "Kirim Absensi";
                 submitBtn.disabled = false;
@@ -534,7 +622,6 @@
         function renderAttendanceHistory() {
             const tableBody = document.getElementById('attendance-history-table');
             tableBody.innerHTML = '';
-
             const totalHistory = JSON.parse(localStorage.getItem('attendance_records')) || [];
             const studentHistory = totalHistory.filter(record => record.nis === currentSessionUser.nis);
 
@@ -548,18 +635,15 @@
                 if (record.status === 'Izin') badge = 'bg-yellow-100 text-yellow-800';
                 if (record.status === 'Sakit') badge = 'bg-red-100 text-red-800';
 
-                // Menandai tulisan terlambat dengan warna merah
                 let info = record.infoTambahan || "-";
-                if(info.includes("Terlambat")) {
-                    info = `<span class="text-red-600 font-semibold">${info}</span>`;
-                }
+                if(info.includes("Terlambat")) info = `<span class="text-red-600 font-semibold">${info}</span>`;
 
                 tableBody.innerHTML += `
                     <tr class="hover:bg-gray-50 border-b border-gray-50">
                         <td class="px-4 py-3 whitespace-nowrap">${record.date.split(', ')[1]}</td>
                         <td class="px-4 py-3 font-bold">${record.tipe}</td>
                         <td class="px-4 py-3"><span class="px-2 py-1 rounded text-xs font-semibold ${badge}">${record.status}</span></td>
-                        <td class="px-4 py-3 text-xs text-gray-500 max-w-[120px] truncate" title="${record.infoTambahan}">${info}</td>
+                        <td class="px-4 py-3 text-xs text-gray-500 max-w-[140px] truncate" title="${record.infoTambahan}">${info}</td>
                     </tr>
                 `;
             });
