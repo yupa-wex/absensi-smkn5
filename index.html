@@ -593,18 +593,28 @@ function retryLocation() {
             }
         }
 
-        function showDashboard() {
-            document.getElementById('login-page').classList.add('hidden');
-            document.getElementById('dashboard-page').classList.remove('hidden');
-            document.getElementById('student-name').innerText = currentSessionUser.name;
-            document.getElementById('student-nis').innerText = currentSessionUser.nis;
-            document.getElementById('student-class').innerText = currentSessionUser.class;
+       function showDashboard() {
+    document.getElementById('login-page').classList.add('hidden');
+    document.getElementById('dashboard-page').classList.remove('hidden');
+    document.getElementById('student-name').innerText = currentSessionUser.name;
+    document.getElementById('student-nis').innerText = currentSessionUser.nis;
+    document.getElementById('student-class').innerText = currentSessionUser.class;
 
-            checkAttendanceRules();
-            renderAttendanceHistory();
-            getLocation(); // Panggil fungsi GPS saat dashboard terbuka
-        }
+    // ==========================================
+    // KODE TAMBAHAN UNTUK MEMAKSA ABSEN MASUK DI AWAL
+    // ==========================================
+    const radioMasuk = document.querySelector('input[value="Masuk"]');
+    const radioPulang = document.querySelector('input[value="Pulang"]');
+    
+    // Paksa browser memilih "Masuk" dan membatalkan pilihan "Pulang"
+    radioMasuk.checked = true;
+    radioPulang.checked = false;
+    // ==========================================
 
+    checkAttendanceRules();
+    renderAttendanceHistory();
+    getLocation(); // Panggil fungsi GPS saat dashboard terbuka
+}
         // ==========================================
         // FUNGSI GEOLOCATION & MENGHITUNG JARAK
         // ==========================================
