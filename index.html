@@ -58,12 +58,16 @@
                 </div>
                 
                 <!-- Indikator GPS -->
-                <div class="bg-gray-50 px-4 py-3 rounded-lg border border-gray-200 text-sm flex items-center gap-3">
-                    <div id="gps-spinner" class="animate-spin h-5 w-5 border-2 border-blue-600 border-t-transparent rounded-full"></div>
-                    <div id="gps-icon" class="hidden h-3 w-3 rounded-full bg-green-500"></div>
-                    <div>
-                        <p class="font-bold text-gray-700">Status Lokasi</p>
-                        <p id="gps-status" class="text-gray-500 text-xs">Mencari sinyal GPS...</p>
+               <div class="bg-gray-50 px-4 py-3 rounded-lg border border-gray-200 text-sm flex items-center gap-3">
+    <div id="gps-spinner" class="animate-spin h-5 w-5 border-2 border-blue-600 border-t-transparent rounded-full"></div>
+    <div id="gps-icon" class="hidden h-3 w-3 rounded-full bg-green-500"></div>
+    <div class="flex-1">
+        <p class="font-bold text-gray-700">Status Lokasi</p>
+        <p id="gps-status" class="text-gray-500 text-xs">Mencari sinyal GPS...</p>
+    </div>
+    <!-- Tambahan tombol retry -->
+    <button onclick="retryLocation()" class="text-xs bg-blue-100 hover:bg-blue-200 text-blue-700 px-2 py-1 rounded">Coba Lagi</button>
+</div>
                     </div>
                 </div>
             </div>
@@ -557,7 +561,18 @@
                 showDashboard();
             }
         };
-
+function retryLocation() {
+    // Kembalikan UI ke state "mencari"
+    document.getElementById('gps-spinner').classList.remove('hidden');
+    document.getElementById('gps-icon').classList.add('hidden');
+    
+    let statusText = document.getElementById('gps-status');
+    statusText.innerText = "Mencari ulang sinyal GPS...";
+    statusText.classList.replace('text-red-600', 'text-gray-500');
+    
+    // Panggil ulang fungsi lokasi
+    getLocation();
+}
         function updateClock() {
             const now = new Date();
             document.getElementById('live-time').innerText = now.toLocaleString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' });
@@ -593,17 +608,17 @@
         // ==========================================
         // FUNGSI GEOLOCATION & MENGHITUNG JARAK
         // ==========================================
-        function getLocation() {
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(showPosition, showError, {
-                    enableHighAccuracy: true,
-                    timeout: 10000,
-                    maximumAge: 0
-                });
-            } else {
-                setGpsError("Browser tidak mendukung GPS.");
-            }
-        }
+      function getLocation() {
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(showPosition, showError, {
+            enableHighAccuracy: true,
+            timeout: 30000, // Perpanjang menjadi 30 detik (30000 ms)
+            maximumAge: 15000 // Izinkan mengambil lokasi terakhir yang direkam 15 detik yang lalu
+        });
+    } else {
+        setGpsError("Browser tidak mendukung GPS.");
+    }
+}
 
         function showPosition(position) {
             const userLat = position.coords.latitude;
@@ -636,10 +651,9 @@
         function showError(error) {
             let msg = "";
             switch(error.code) {
-                case error.PERMISSION_DENIED: msg = "Akses lokasi ditolak."; break;
-                case error.POSITION_UNAVAILABLE: msg = "Informasi lokasi tidak tersedia."; break;
-                case error.TIMEOUT: msg = "Waktu permintaan lokasi habis."; break;
-                default: msg = "Terjadi kesalahan GPS tak dikenal."; break;
+               case error.PERMISSION_DENIED: 
+    msg = "Akses lokasi ditolak. Mohon aktifkan izin lokasi untuk web ini di pengaturan browser Anda."; 
+    break;
             }
             setGpsError(msg);
         }
